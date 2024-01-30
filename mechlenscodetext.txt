@@ -1,0 +1,83 @@
+#include <Servo.h>
+
+Servo servo1, servo2, servo3, servo4;
+
+const int tog1 = 2, tog2 = 3, tog3 = 4, tog4 = 5, but1 = 6, but2 = 7, but3 = 8;
+
+bool togstate1 = false, togstate2 = false, togstate3 = false, togstate4 = false;
+
+void setup() {
+  servo1.attach(9);
+  servo2.attach(10);
+  servo3.attach(11);
+  servo4.attach(12);
+
+  pinMode(tog1, INPUT_PULLUP);
+  pinMode(tog2, INPUT_PULLUP);
+  pinMode(tog3, INPUT_PULLUP);
+  pinMode(tog4, INPUT_PULLUP);
+  pinMode(but1, INPUT_PULLUP);
+  pinMode(but2, INPUT_PULLUP);
+  pinMode(but3, INPUT_PULLUP);
+}
+
+void loop() {
+  // Handle toggle switches
+  handleToggle(tog1, togstate1);
+  handleToggle(tog2, togstate2);
+  handleToggle(tog3, togstate3);
+  handleToggle(tog4, togstate4);
+
+  // Handle different expressions based on button states
+  handleExpressions(but1, but2, but3);
+
+  // Auto reset servo positions
+  autoReset();
+}
+
+void handleToggle(int togglePin, bool &toggleState) {
+  if (digitalRead(togglePin) == LOW) {
+    delay(10);
+
+    if (digitalRead(togglePin) == LOW) {
+      toggleState = !toggleState;
+
+      while (digitalRead(togglePin) == LOW) {}
+    }
+  }
+}
+
+void handleExpressions(int button1, int button2, int button3) {
+  if (digitalRead(button1) == LOW && digitalRead(button2) == LOW && digitalRead(button3) == LOW) {
+    // Full squint
+    setServoPositions(0, 0, 0, 0);
+  } else if (digitalRead(button1) == LOW) {
+    // Twitch/focus right eye
+    setServoPositions(30, 0, 0, 0);
+  } else if (digitalRead(button2) == LOW) {
+    // Twitch/focus left eye
+    setServoPositions(0, 30, 0, 0);
+  } else if (digitalRead(button3) == LOW) {
+    // Surprised expression
+    setServoPositions(30, 30, 30, 30);
+  } else {
+    // Regular expression
+    setServoPositions(0, 0, 0, 0);
+  }
+}
+
+void setServoPositions(int pos1, int pos2, int pos3, int pos4) {
+  servo1.write(pos1);
+  servo2.write(pos2);
+  servo3.write(pos3);
+  servo4.write(pos4);
+  delay(10);
+}
+
+void autoReset() {
+  if (digitalRead(but1) == HIGH && digitalRead(but2) == HIGH && digitalRead(but3) == HIGH &&
+      !togstate1 && !togstate2 && !togstate3 && !togstate4) {
+    // Reset to regular expression
+    setServoPositions(0, 0, 0, 0);
+  }
+}
